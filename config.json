@@ -1,0 +1,169 @@
+{
+    "domingo_as_dez_api_key": null,
+    "club_names_map": [
+        {
+            "from": "GD ÁGUAS SANTAS",
+            "to": "Aguas Santas"
+        },
+        {
+            "from": "FC NEGREIROS",
+            "to": "Negreiros"
+        },
+        {
+            "from": "LEÕES DA SERRA FC",
+            "to": "Leões da Serra"
+        },
+        {
+            "from": "ADRJ S.MARTINHO",
+            "to": "S. Martinho"
+        },
+        {
+            "from": "ACRD CARVALHAS",
+            "to": "Carvalhas"
+        },
+        {
+            "from": "ADCR ÁGUIAS S. MAMEDE",
+            "to": "S. Mamede"
+        },
+        {
+            "from": "AD CARVALHAL",
+            "to": "Carvalhal"
+        },
+        {
+            "from": "PALME FC",
+            "to": "Palme"
+        },
+        {
+            "from": "GD MACIEIRA",
+            "to": "Macieira"
+        },
+        {
+            "from": "GDR LEOCADENSES",
+            "to": "Leocadenses"
+        },
+        {
+            "from": "ACD CARAPEÇOS",
+            "to": "Carapeços"
+        },
+        {
+            "from": "FC OLIVEIRA",
+            "to": "Oliveira"
+        },
+        {
+            "from": "ACD PEREIRA",
+            "to": "Pereira"
+        },
+        {
+            "from": "ADC REMELHE",
+            "to": "Remelhe"
+        },
+        {
+            "from": "JCR PERELHAL",
+            "to": "Perelhal"
+        },
+        {
+            "from": "ADC BASTUÇO S.JOÃO",
+            "to": "Bastuço S. João"
+        },
+        {
+            "from": "GD CREIXOMIL",
+            "to": "Creixomil"
+        },
+        {
+            "from": "ND STA. EUGÉNIA",
+            "to": "ND Sta. Eugénia"
+        },
+        {
+            "from": "NECESSIDADES FC",
+            "to": "Nessessidades"
+        },
+        {
+            "from": "ARC COSSOURADO",
+            "to": "Cossourado"
+        },
+        {
+            "from": "UCRA ABORIM",
+            "to": "Aborim"
+        },
+        {
+            "from": "GDR CAMPO",
+            "to": "Campo"
+        },
+        {
+            "from": "ARC SEQUEADE",
+            "to": "Sequeade"
+        },
+        {
+            "from": "GD FEITOS",
+            "to": "Feitos"
+        },
+        {
+            "from": "ND ÁGUIAS DO NEIVA",
+            "to": "Aguias do Neiva"
+        },
+        {
+            "from": "GDR ESTRELAS",
+            "to": "Estrelas S. Pedro"
+        },
+        {
+            "from": "GD PEDRA FURADA",
+            "to": "Pedra Furada"
+        },
+        {
+            "from": "AD GRIMANCELOS",
+            "to": "Grimancelos"
+        },
+        {
+            "from": "ARC VÁRZEA",
+            "to": "Várzea"
+        },
+        {
+            "from": "GDC CRISTELO",
+            "to": "Cristelo"
+        },
+        {
+            "from": "AD MILHAZES",
+            "to": "Milhazes"
+        },
+        {
+            "from": "GD FRAGOSO",
+            "to": "Fragoso"
+        },
+        {
+            "from": "A BALUGANENSE CD",
+            "to": "Baluganense"
+        },
+        {
+            "from": "LIJÓ FC",
+            "to": "Lijó"
+        },
+        {
+            "from": "ADCR SILVEIROS",
+            "to": "Silveiros"
+        },
+        {
+            "from": "GDRM PARADELA",
+            "to": "Paradela"
+        },
+        {
+            "from": "ACDR CAMBESES",
+            "to": "Cambeses"
+        },
+        {
+            "from": "ND SILVA",
+            "to": "Silva"
+        },
+        {
+            "from": "CARVALHAS FC",
+            "to": "Carvalhas"
+        },
+        {
+            "from": "ADRC FONTE COBERTA",
+            "to": "Fonte Coberta"
+        },
+        {
+            "from": "AD CHORENTE",
+            "to": "Chorente"
+        }
+    ]
+}
