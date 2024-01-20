@@ -12,14 +12,15 @@ const loop = async () => {
 
     loadSentCache()
     
-    // Make the request
     while (true) {
         console.log('=== Running Crawler =====================')
+
+        console.log(`Running in ${process.env.NODE_ENV || 'dev'} environment`)
 
         try {
             await run()
         } catch (error) {
-            console.error('Major error running crawler that could not be recovered:\n', error?.message)
+            console.error('Major error that could not be recovered:\n', error?.message)
         }
         
         console.log('=== Sleeping for 60 seconds =============\n\n\n')
@@ -29,10 +30,10 @@ const loop = async () => {
 
 const run = async () => {
     const liveGames = await domingoAsDezClient.getLiveGamesAsync()
-    /*if (!liveGames || liveGames.length === 0) {
+    if (!liveGames || liveGames.length === 0) {
         console.log('No live games found, skipping run')
         return
-    }*/
+    }
 
     console.log('Making request to https://afpbarcelos.pt/')
     const games = []

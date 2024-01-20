@@ -80,7 +80,7 @@ const getLiveGamesAsync = async () => {
 }
 
 const getScoreReportUrl = (gameId) => {
-    const env = process.env.ENV || 'dev'
+    const env = process.env.NODE_ENV || 'dev'
     if (env === 'prod' || env === 'production') {
         return `https://domingoasdez.com/api/score-reports/${gameId}`
     } else {
@@ -89,7 +89,7 @@ const getScoreReportUrl = (gameId) => {
 }
 
 const getLiveGamesUrl = () => {
-    const env = process.env.ENV || 'dev'
+    const env = process.env.NODE_ENV || 'dev'
     if (env === 'prod' || env === 'production') {
         return 'https://domingoasdez.com/api/games/live'
     } else {
