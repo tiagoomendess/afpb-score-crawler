@@ -4,9 +4,12 @@ const fs = require('fs')
 const domingoAsDezClient = require('./domingoasdez')
 const afpb = require('./afpb')
 
-const SLEEP_TIME_SECONDS = 30
+const ACTIVE_SLEEP_TIME_SECONDS = 30
+const INACTIVE_SLEEP_TIME_SECONDS = 600 // 10 minutes
 const SENT_CACHE_FILE_NAME = 'sent_results_cache.txt'
 const sent_cache = []
+
+let isActive = true
 
 const loop = async () => {
     console.log('Starting the scraper...')
@@ -24,8 +27,9 @@ const loop = async () => {
             console.error('Major error that could not be recovered:\n', error?.message)
         }
         
-        console.log(`=== Sleeping for ${SLEEP_TIME_SECONDS} seconds =============\n\n\n`)
-        await new Promise(resolve => setTimeout(resolve, SLEEP_TIME_SECONDS*1000))
+        const sleepingTime = isActive ? ACTIVE_SLEEP_TIME_SECONDS : INACTIVE_SLEEP_TIME_SECONDS
+        console.log(`=== Sleeping for ${sleepingTime} seconds =============\n\n\n`)
+        await new Promise(resolve => setTimeout(resolve, sleepingTime*1000))
     }
 }
 
@@ -33,8 +37,11 @@ const run = async () => {
     const liveGames = await domingoAsDezClient.getLiveGamesAsync()
     if (!liveGames || liveGames.length === 0) {
         console.log('No live games found, skipping run')
+        isActive = false
         return
     }
+
+    isActive = true
 
     // Log the amount of groups and how many games per group
     console.log(`Got ${liveGames.length} game groups from Domingo às Dez`)
