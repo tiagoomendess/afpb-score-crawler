@@ -2,8 +2,9 @@ const cheerio = require('cheerio')
 const axios = require('axios')
 const fs = require('fs')
 const domingoAsDezClient = require('./domingoasdez')
-const config = require('./config.json')
+const afpb = require('./afpb')
 
+const SLEEP_TIME_SECONDS = 30
 const SENT_CACHE_FILE_NAME = 'sent_results_cache.txt'
 const sent_cache = []
 
@@ -23,8 +24,8 @@ const loop = async () => {
             console.error('Major error that could not be recovered:\n', error?.message)
         }
         
-        console.log('=== Sleeping for 60 seconds =============\n\n\n')
-        await new Promise(resolve => setTimeout(resolve, 60000))
+        console.log(`=== Sleeping for ${SLEEP_TIME_SECONDS} seconds =============\n\n\n`)
+        await new Promise(resolve => setTimeout(resolve, SLEEP_TIME_SECONDS*1000))
     }
 }
 
@@ -35,58 +36,24 @@ const run = async () => {
         return
     }
 
-    console.log('Making request to https://afpbarcelos.pt/')
-    const games = []
-    const response = await axios.get('https://afpbarcelos.pt/')
-    if (response.status !== 200) {
-        console.log(`Error making request, page returned http status ${response.status}`)
-        return
-    } else {
-        console.log('Request successful')
+    // Log the amount of groups and how many games per group
+    console.log(`Got ${liveGames.length} game groups from Domingo às Dez`)
+    for (const gameGroup of liveGames) {
+        console.log(`Group ${gameGroup.competition_name} ${gameGroup.game_group_name} ${gameGroup.season_name}: ${gameGroup.games.length} games`)
     }
 
-    const $ = cheerio.load(response.data)
-    $('.match-list > .game').each((i, element) => {
-        const homeTeam = $(element).find('.list-1 p').text().trim()
-        const awayTeam = $(element).find('.list-3 p').text().trim()
+    const games = []
+    for (const gameGroup of liveGames) {
+        console.log(`Processing group ${gameGroup.competition_name} ${gameGroup.season_name}`)
+        games.push(...await afpb.handleGroup(gameGroup))
+    }
 
-        const middleSection = $(element).find('.list-2 td')
-        let score = null
-        let date = null
-        let finished = false
-        $(middleSection).find('span').each((i, element) => {
-            const value = $(element).text().trim()
+    console.log(`Found ${games.length} games in total from all groups`)
 
-            let matches = value.match(/^\d+\s?\-\s?\d+$/g)
-            if (matches) {
-                score = matches[0]
-                score = score.replace(/\s/g, '')
-            }
-
-            matches = value.match(/^\d{2}-\d{2}-\d{4}\s\-\s\d{2}:\d{2}$/g)
-            if (matches) {
-                date = parseDate(matches[0])
-            }
-
-            matches = value.match(/^Terminado$/g)
-            if (matches) {
-                finished = true
-            }
-        })
-
-        games.push({
-            homeTeam: mapClubName(homeTeam),
-            awayTeam: mapClubName(awayTeam),
-            homeScore: score ? score.split('-')[0] : null,
-            awayScore: score ? score.split('-')[1] : null,
-            finished: finished,
-            date: date ? formatDate(date) : null
-        })
-    })
+    console.log(`Starting to process games`)
 
     games.forEach(async (game) => {
         const finKey = game.finished ? 'finished' : 'not finished'
-        console.log(`Processing game ${game.homeTeam} vs ${game.awayTeam} (${finKey})`)
 
         if (game.homeScore === null || game.awayScore === null) {
             console.log(`Skipping ${game.homeTeam} - ${game.awayTeam} (${finKey}) because score is null`)
@@ -94,9 +61,9 @@ const run = async () => {
         }
 
         const gameStringId = `${game.homeTeam} ${game.homeScore}-${game.awayScore} ${game.awayTeam} (${finKey})`
-        const cacheKey = generateCacheKey(game.homeTeam, game.awayTeam, game.homeScore, game.awayScore, game.finished)
+        const cacheKey = generateCacheKey(game)
         if (sent_cache.includes(cacheKey)) {
-            console.log(`Not processing ${gameStringId} because it was already sent`)
+            console.log(`Skipping ${gameStringId} because it was already sent`)
             return
         }
 
@@ -105,7 +72,7 @@ const run = async () => {
         })
 
         if (!matchedLiveGame) {
-            console.log(`Ignoring ${gameStringId} because it was not found in live games`)
+            console.log(`Skipping ${gameStringId} because it was not found in live games`)
             return
         }
 
@@ -125,8 +92,8 @@ const run = async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
 }
 
-const generateCacheKey = (homeTeam, awayTeam, homeScore, awayScore, finished) => {
-    return `${homeTeam}_${awayTeam}_${homeScore}_${awayScore}_${finished}`
+const generateCacheKey = (game) => {
+    return `${game.date}_${game.homeTeam}_${game.awayTeam}_${game.homeScore}_${game.awayScore}_${game.finished}`
 }
 
 const addToSentCache = (key) => {
@@ -146,58 +113,6 @@ const loadSentCache = () => {
         console.log(`Sent cache file loaded ${lines.length} lines into memory`)
     } catch (error) {
         console.log('Error loading sent cache file')
-    }
-}
-
-const mapClubName = (name) => {
-    if (!config.club_names_map) {
-        console.log('No club names map found in config')
-        return name
-    }
-
-    const map = config.club_names_map
-    const length = map.length
-    for (let i = 0; i < length; i++) {
-        if (map[i].from === name) {
-            return map[i].to
-        }
-    }
-
-    console.log(`No mapping found for club ${name}`)
-
-    return name
-}
-
-const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2)
-    const day = ('0' + date.getDate()).slice(-2)
-    const hours = ('0' + date.getHours()).slice(-2)
-    const minutes = ('0' + date.getMinutes()).slice(-2)
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:00`
-}
-
-const parseDate = (dateString) => {
-    let components = dateString.match(/(\d{2})-(\d{2})-(\d{4})\s\-\s(\d{2}):(\d{2})/);
-
-    if (components) {
-        let day = parseInt(components[1], 10);
-        let month = parseInt(components[2], 10) - 1; // Months are 0-indexed
-        let year = parseInt(components[3], 10);
-        let hours = parseInt(components[4], 10);
-        let minutes = parseInt(components[5], 10);
-
-        let parsedDate = new Date(year, month, day, hours, minutes);
-
-        // Check if the Date object is valid
-        if (!isNaN(parsedDate.getTime())) {
-            return parsedDate;
-        } else {
-            return null;
-        }
-    } else {
-        return null;
     }
 }
 

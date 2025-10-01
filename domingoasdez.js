@@ -18,7 +18,7 @@ const sendScoreAsync = async (gameId, homeScore, awayScore, finished) => {
                 source: 'afpb_crawler',
                 home_score: homeScore,
                 ip_address: null,
-                user_agent: 'axios 1.6.2, AFPB Score Crawler',
+                user_agent: 'axios 1.6.2, AFPB Score Crawler from Domnigo às Dez',
                 away_score: awayScore,
                 latitude: null,
                 longitude: null,
@@ -59,24 +59,7 @@ const getLiveGamesAsync = async () => {
         return []
     }
 
-    response.data.data.forEach((group) => {
-        group.games.forEach((game) => {
-            allgames.push({
-                id: game.id,
-                homeTeam: game.home_club_name,
-                awayTeam: game.away_club_name,
-                homeScore: game.home_score,
-                awayScore: game.away_score,
-                date: game.date,
-                finished: game.finished,
-                started: game.started,
-            })
-        })
-    });
-
-    console.log(`Request successfull, there are ${allgames.length} live games`)
-
-    return allgames;
+    return response.data.data;
 }
 
 const getScoreReportUrl = (gameId) => {

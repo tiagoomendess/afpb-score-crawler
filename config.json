@@ -164,6 +164,22 @@
         {
             "from": "AD CHORENTE",
             "to": "Chorente"
+        },
+        {
+            "from": "ND ANDORINHAS",
+            "to": "Andorinhas"
+        },
+        {
+            "from": "MARCA",
+            "to": "MARCA"
+        },
+        {
+            "from": "LIRIO DO NEIVA",
+            "to": "FC Lírio do Neiva "
+        },
+        {
+            "from": "FOLGA",
+            "to": "Folga"
         }
     ]
 }
