@@ -33,7 +33,8 @@ const handleGroup = async (gameGroup) => {
 
     // The gamegroup has an array of games, but those games can have different rounds, 
     // get all the possible int values for round from all the items inside group.games
-    const rounds = gameGroup.games.map(game => game.round).filter(round => round !== null).map(round => parseInt(round))
+    // distinct round values
+    const rounds = gameGroup.games.map(game => game.round).filter(round => round !== null).map(round => parseInt(round)).filter((round, index, self) => self.indexOf(round) === index)
 
     // for each round make one request to a website to scrape and save the results in an array of values
     // The response will be HTML, so we need to use cheerio to parse the response

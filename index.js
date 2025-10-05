@@ -52,7 +52,8 @@ const run = async () => {
     const games = []
     for (const gameGroup of liveGames) {
         console.log(`Processing group ${gameGroup.competition_name} ${gameGroup.season_name}`)
-        games.push(...await afpb.handleGroup(gameGroup))
+        const groupGames = await afpb.handleGroup(gameGroup)
+        games.push(...groupGames)
     }
 
     console.log(`Found ${games.length} games in total from all groups`)
