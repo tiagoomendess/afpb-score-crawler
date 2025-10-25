@@ -41,6 +41,11 @@ const run = async () => {
         return
     }
 
+    const liveGamesFlat = []
+    liveGames.forEach(group => {
+        liveGamesFlat.push(...group.games)
+    })
+
     isActive = true
 
     // Log the amount of groups and how many games per group
@@ -75,17 +80,12 @@ const run = async () => {
             return
         }
 
-        const matchedLiveGame = liveGames.find(liveGame => {
-            return liveGame.homeTeam === game.homeTeam && liveGame.awayTeam === game.awayTeam
+        const matchedLiveGame = liveGamesFlat.find(liveGame => {
+            return liveGame.home_club_name === game.homeTeam && liveGame.away_club_name === game.awayTeam
         })
 
         if (!matchedLiveGame) {
             console.log(`Skipping ${gameStringId} because it was not found in live games`)
-            return
-        }
-
-        if (matchedLiveGame.finished) {
-            console.log(`Skipping ${gameStringId} because it is already finished on Domingo às Dez`)
             return
         }
 

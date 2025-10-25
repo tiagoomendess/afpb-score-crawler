@@ -8,7 +8,7 @@ const DIV_2_B_EDITION = 51
 const TACA_EDITION = 48
 
 const competitionToEdition = {
-    "1ª Divisão AFPB Campeonato": DIV_1_EDITION,
+    "1ª Divisão AGRIBAR Campeonato": DIV_1_EDITION,
     "2ª Divisão AFPB Série A": DIV_2_A_EDITION,
     "2ª Divisão AFPB Série B": DIV_2_B_EDITION,
     "Taça Cidade de Barcelos Eliminatórias": TACA_EDITION,
