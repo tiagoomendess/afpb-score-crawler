@@ -28,7 +28,7 @@ const handleGroup = async (gameGroup) => {
     const edition = competitionToEdition[`${gameGroup.competition_name} ${gameGroup.game_group_name}`]
     if (!edition) {
         console.log(`No edition found for competition ${gameGroup.competition_name} ${gameGroup.game_group_name}`)
-        return
+        return []
     }
 
     // The gamegroup has an array of games, but those games can have different rounds, 
