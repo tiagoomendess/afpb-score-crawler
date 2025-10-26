@@ -2,6 +2,8 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 const config = require('./config.json')
 
+const AFPB_BASE_URL = 'https://afpbarcelos.pt/'
+
 const DIV_1_EDITION = 49
 const DIV_2_A_EDITION = 50
 const DIV_2_B_EDITION = 51
@@ -21,7 +23,9 @@ const CSS_SELECTORS = {
     HOME_SCORE: '.score-home',
     AWAY_SCORE: '.score-away',
     DATE: 'time',
-    WIN: '.teams > .win'
+    WIN: '.teams > .win',
+    DETAIL_URL: 'a',
+    MATCH_STATUS: '.vanues > div.stadium'
 }
 
 const handleGroup = async (gameGroup) => {
@@ -74,16 +78,23 @@ const handleGroup = async (gameGroup) => {
     const games = []
     for (const response of responses) {
         const $ = cheerio.load(response)
-        
-        $(CSS_SELECTORS.GAMES).each((i, element) => {
+
+        for (const element of $(CSS_SELECTORS.GAMES)) {
             const homeTeam = $(element).find(CSS_SELECTORS.HOME_TEAM_NAME).text().trim()
             const awayTeam = $(element).find(CSS_SELECTORS.AWAY_TEAM_NAME).text().trim()
             const homeScore = $(element).find(CSS_SELECTORS.HOME_SCORE).text().trim()
             const awayScore = $(element).find(CSS_SELECTORS.AWAY_SCORE).text().trim()
             const dateStr = $(element).find(CSS_SELECTORS.DATE).text().trim()
 
-            // if an element inside this game has the class win, then the game is finished
-            const finished = $(element).find(CSS_SELECTORS.WIN).length > 0
+            let matchDetails = {
+                finished: false,
+            }
+
+            // Match Detail URL
+            let detailUrl = $(element).find(CSS_SELECTORS.DETAIL_URL).attr('href')
+            if (detailUrl) {
+                matchDetails = await fetchMatchDetails(detailUrl)
+            }
 
             // date is only in format DD/MM HH:MM, use current year. The time is Europe/Lisbon
             const splitted = dateStr.split(' ')
@@ -99,15 +110,61 @@ const handleGroup = async (gameGroup) => {
                 awayTeam: mapClubName(awayTeam),
                 homeScore: homeScore ? parseInt(homeScore, 10) : null,
                 awayScore: awayScore ? parseInt(awayScore, 10) : null,
-                finished: finished,
+                finished: matchDetails.finished,
                 date: date.toISOString()
             })
-        })
+        }
     }
 
     console.log(`Extracted ${games.length} games from edition ${edition}`)
 
     return games
+}
+
+const fetchMatchDetails = async (url) => {
+    // For now this only returns if a match has been finished or not
+    // But in the future we can extract more details if needed
+
+    // If url does not start with http, prepend base url
+    if (!url.startsWith('http')) {
+        url = AFPB_BASE_URL + url
+    }
+
+    let response = {}
+
+    // Fetch url synchronously
+    try {
+        console.log(`Fetching match details from ${url}`)
+        response = await axios.get(url, {
+            headers: generateRandomHeaders(),
+            timeout: 10000,
+            withCredentials: true
+        })
+
+        if (response.status !== 200) {
+            console.log(`Error fetching match details from ${url}, status: ${response.status}`)
+            return { finished: false }
+        }
+    } catch (error) {
+        console.log(`Error fetching match details from ${url}: ${error.message}`)
+        return { finished: false }
+    }
+
+    const $ = cheerio.load(response.data)
+    const matchStatusText = $(CSS_SELECTORS.MATCH_STATUS).text().trim().toLowerCase()
+
+    let finished = false
+
+    // Terminado means finished
+    if (matchStatusText.includes('terminado')) {
+        finished = true
+    }
+
+    const toReturn = {
+        finished
+    }
+
+    return toReturn
 }
 
 const mapClubName = (name) => {

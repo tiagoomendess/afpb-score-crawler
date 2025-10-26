@@ -24,7 +24,7 @@ const sendScoreAsync = async (gameId, homeScore, awayScore, finished) => {
                 longitude: null,
                 accuracy: null,
                 uuid: UUID,
-                finished: false,
+                finished: finished,
             },
             {
                 headers: {

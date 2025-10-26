@@ -86,9 +86,6 @@ const run = async () => {
 
         if (!matchedLiveGame) {
             console.log(`Skipping ${gameStringId} because it was not found in live games`)
-            console.log(`Looking for: ${game.homeTeam} vs ${game.awayTeam}`)
-            console.log(`Available live games:`)
-            liveGamesFlat.forEach(lg => console.log(`  - ${lg.home_club_name} vs ${lg.away_club_name}`))
             return
         }
 
