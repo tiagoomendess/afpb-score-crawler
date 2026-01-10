@@ -8,12 +8,14 @@ const DIV_1_EDITION = 49
 const DIV_2_A_EDITION = 50
 const DIV_2_B_EDITION = 51
 const TACA_EDITION = 48
+const DIV_1_FEM_EDITION = 52
 
 const competitionToEdition = {
     "1ª Divisão AGRIBAR Campeonato": DIV_1_EDITION,
     "2ª Divisão AFPB Série A": DIV_2_A_EDITION,
     "2ª Divisão AFPB Série B": DIV_2_B_EDITION,
     "Taça Cidade de Barcelos Eliminatórias": TACA_EDITION,
+    "1ª Divisão Feminino Campeonato": DIV_1_FEM_EDITION,
 }
 
 const CSS_SELECTORS = {
