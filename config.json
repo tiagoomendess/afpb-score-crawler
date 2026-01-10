@@ -180,6 +180,26 @@
         {
             "from": "FOLGA",
             "to": "Folga"
+        },
+        {
+            "from": "A.C.D.S.MIGUEL DE LAUNDOS",
+            "to": "Laúndos"
+        },
+        {
+            "from": "ADC BALASAR",
+            "to": "ADC Balasar"
+        },
+        {
+            "from": "GD APULIA",
+            "to": "GD Apúlia"
+        },
+        {
+            "from": "AJ ESTELA",
+            "to": "Estela"
+        },
+        {
+            "from": "VILA FRIA 1980",
+            "to": "Vila Fria 1980"
         }
     ]
 }
