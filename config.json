@@ -99,7 +99,7 @@
         },
         {
             "from": "ND ÁGUIAS DO NEIVA",
-            "to": "Aguias do Neiva"
+            "to": "Águias do Neiva"
         },
         {
             "from": "GDR ESTRELAS",
@@ -175,7 +175,7 @@
         },
         {
             "from": "LIRIO DO NEIVA",
-            "to": "FC Lírio do Neiva "
+            "to": "FC Lírio do Neiva"
         },
         {
             "from": "FOLGA",
@@ -202,8 +202,24 @@
             "to": "Vila Fria 1980"
         },
         {
-            "from": "C.C. OsTORREENSES",
-            "to": "Os Torrenses"
+            "from": "C.C. OS TORREENSES",
+            "to": "Os Torreenses"
+        },
+        {
+            "from": "UD S.MAMEDE",
+            "to": "UD São Mamede"
+        },
+        {
+            "from": "AD ÁGUIAS DA GRAÇA F C",
+            "to": "Águias da Graça"
+        },
+        {
+            "from": "F.C.AREIAS S.VICENTE",
+            "to": "Areias São Vicente"
+        },
+        {
+            "from": "UFC",
+            "to": "União FC"
         }
     ]
 }

@@ -4,19 +4,31 @@ const config = require('./config.json')
 
 const AFPB_BASE_URL = 'https://afpbarcelos.pt/'
 
-const DIV_1_EDITION = 49
-const DIV_2_A_EDITION = 50
-const DIV_2_B_EDITION = 51
-const TACA_EDITION = 48
-const DIV_1_FEM_EDITION = 52
+const HONRA_EDITION = 60
+const DIV_1_EDITION = 61
+const DIV_2_EDITION = 62
+const TACA_EDITION = 65
+const TACA_FEM_EDITION = 58
+const DIV_FEM_EDITION = 64
+const SUPERTACA_EDITION = 59
+const SUPERTACA_FEM_EDITION = 63
 
+// Domingo às Dez key is `${competition_name} ${game_group_name}`.
 const competitionToEdition = {
-    "1ª Divisão AGRIBAR Campeonato": DIV_1_EDITION,
-    "2ª Divisão AFPB Série A": DIV_2_A_EDITION,
-    "2ª Divisão AFPB Série B": DIV_2_B_EDITION,
+    "Divisão de Honra Agribar Campeonato": HONRA_EDITION,
+    "1ª Divisão Papagaio Loiro Campeonato": DIV_1_EDITION,
+    "2ª Divisão Campeonato": DIV_2_EDITION,
     "Taça Cidade de Barcelos Eliminatórias": TACA_EDITION,
-    "1ª Divisão Feminino Campeonato": DIV_1_FEM_EDITION,
+    "Taça Cidade de Barcelos Feminino Eliminatórias": TACA_FEM_EDITION,
+    "1ª Divisão Feminino Campeonato": DIV_FEM_EDITION,
+    "Super Taça AFPB Eliminatórias": SUPERTACA_EDITION,
+    "Super Taça Feminina Eliminatórias": SUPERTACA_FEM_EDITION,
 }
+
+// Cup phases 1 and 2 are empty on AFPB. 1ª Eliminatória is ordering 3.
+const tacaEditions = new Set([TACA_EDITION, TACA_FEM_EDITION])
+// Supertaça is a single fixture. Ordering 1 is empty; the match is on ordering 0.
+const supertacaEditions = new Set([SUPERTACA_EDITION, SUPERTACA_FEM_EDITION])
 
 const CSS_SELECTORS = {
     GAMES: 'div.games > .overview',
@@ -27,7 +39,12 @@ const CSS_SELECTORS = {
     DATE: 'time',
     WIN: '.teams > .win',
     DETAIL_URL: 'a',
-    MATCH_STATUS: '.vanues > div.stadium'
+    MATCH_STATUS: '.vanues > div.stadium',
+    MATCH_SCORE: '.vanues .score',
+    MATCH_DATE: '.vanues .date',
+    SIDEBAR_GAMES: '.match-list a',
+    SIDEBAR_HOME: '.list-1 p',
+    SIDEBAR_AWAY: '.list-3 p',
 }
 
 const handleGroup = async (gameGroup) => {
@@ -47,13 +64,11 @@ const handleGroup = async (gameGroup) => {
     const responses = []
     for (const round of rounds) {
         // Turns out ordering can be dephased by the edition
-        let ordering = null
-        switch (edition) {
-            case TACA_EDITION:
-                ordering = round + 2
-                break
-            default:
-                ordering = round
+        let ordering = round
+        if (tacaEditions.has(edition)) {
+            ordering = round + 2
+        } else if (supertacaEditions.has(edition)) {
+            ordering = 0
         }
 
         const requestUrl = `https://afpbarcelos.pt/index.php?partial_load=_constructhtmlbyedition&edition=${edition}&ordering=${ordering}`
@@ -80,38 +95,60 @@ const handleGroup = async (gameGroup) => {
     const games = []
     for (const response of responses) {
         const $ = cheerio.load(response)
+        const standardGames = $(CSS_SELECTORS.GAMES)
 
-        for (const element of $(CSS_SELECTORS.GAMES)) {
-            const homeTeam = $(element).find(CSS_SELECTORS.HOME_TEAM_NAME).text().trim()
-            const awayTeam = $(element).find(CSS_SELECTORS.AWAY_TEAM_NAME).text().trim()
-            const homeScore = $(element).find(CSS_SELECTORS.HOME_SCORE).text().trim()
-            const awayScore = $(element).find(CSS_SELECTORS.AWAY_SCORE).text().trim()
-            const dateStr = $(element).find(CSS_SELECTORS.DATE).text().trim()
+        if (standardGames.length > 0) {
+            for (const element of standardGames) {
+                const homeTeam = $(element).find(CSS_SELECTORS.HOME_TEAM_NAME).text().trim()
+                const awayTeam = $(element).find(CSS_SELECTORS.AWAY_TEAM_NAME).text().trim()
+                const homeScore = $(element).find(CSS_SELECTORS.HOME_SCORE).text().trim()
+                const awayScore = $(element).find(CSS_SELECTORS.AWAY_SCORE).text().trim()
+                const dateStr = $(element).find(CSS_SELECTORS.DATE).text().trim()
 
-            let matchDetails = {
-                finished: false,
+                let matchDetails = {
+                    finished: false,
+                }
+
+                // Match Detail URL
+                let detailUrl = $(element).find(CSS_SELECTORS.DETAIL_URL).attr('href')
+                if (detailUrl) {
+                    matchDetails = await fetchMatchDetails(detailUrl)
+                }
+
+                const date = parseGameDate(dateStr)
+
+                games.push({
+                    homeTeam: mapClubName(homeTeam),
+                    awayTeam: mapClubName(awayTeam),
+                    homeScore: homeScore ? parseInt(homeScore, 10) : null,
+                    awayScore: awayScore ? parseInt(awayScore, 10) : null,
+                    finished: matchDetails.finished,
+                    date: date.toISOString()
+                })
+            }
+            continue
+        }
+
+        // Supertaça fixtures use a sidebar list and only publish the score on the match page.
+        for (const element of $(CSS_SELECTORS.SIDEBAR_GAMES)) {
+            const homeTeam = $(element).find(CSS_SELECTORS.SIDEBAR_HOME).text().trim()
+            const awayTeam = $(element).find(CSS_SELECTORS.SIDEBAR_AWAY).text().trim()
+            const detailUrl = $(element).attr('href')
+            if (!homeTeam || !awayTeam || !detailUrl) {
+                continue
             }
 
-            // Match Detail URL
-            let detailUrl = $(element).find(CSS_SELECTORS.DETAIL_URL).attr('href')
-            if (detailUrl) {
-                matchDetails = await fetchMatchDetails(detailUrl)
+            const matchDetails = await fetchMatchDetails(detailUrl)
+            if (!matchDetails.dateStr) {
+                continue
             }
 
-            // date is only in format DD/MM HH:MM, use current year. The time is Europe/Lisbon
-            const splitted = dateStr.split(' ')
-            const [day, month] = splitted[0].split('/').map(x => parseInt(x, 10))
-            const [hour, minute] = splitted[1].split(':').map(x => parseInt(x, 10))
-            const year = new Date().getFullYear()
-            
-            // Create date (month is 0-indexed in JS)
-            const date = new Date(year, month - 1, day, hour, minute)
-
+            const date = parseGameDate(matchDetails.dateStr)
             games.push({
                 homeTeam: mapClubName(homeTeam),
                 awayTeam: mapClubName(awayTeam),
-                homeScore: homeScore ? parseInt(homeScore, 10) : null,
-                awayScore: awayScore ? parseInt(awayScore, 10) : null,
+                homeScore: matchDetails.homeScore,
+                awayScore: matchDetails.awayScore,
                 finished: matchDetails.finished,
                 date: date.toISOString()
             })
@@ -123,10 +160,14 @@ const handleGroup = async (gameGroup) => {
     return games
 }
 
-const fetchMatchDetails = async (url) => {
-    // For now this only returns if a match has been finished or not
-    // But in the future we can extract more details if needed
+const emptyMatchDetails = () => ({
+    finished: false,
+    homeScore: null,
+    awayScore: null,
+    dateStr: null,
+})
 
+const fetchMatchDetails = async (url) => {
     // If url does not start with http, prepend base url
     if (!url.startsWith('http')) {
         url = AFPB_BASE_URL + url
@@ -134,7 +175,6 @@ const fetchMatchDetails = async (url) => {
 
     let response = {}
 
-    // Fetch url synchronously
     try {
         console.log(`Fetching match details from ${url}`)
         response = await axios.get(url, {
@@ -145,28 +185,45 @@ const fetchMatchDetails = async (url) => {
 
         if (response.status !== 200) {
             console.log(`Error fetching match details from ${url}, status: ${response.status}`)
-            return { finished: false }
+            return emptyMatchDetails()
         }
     } catch (error) {
         console.log(`Error fetching match details from ${url}: ${error.message}`)
-        return { finished: false }
+        return emptyMatchDetails()
     }
 
     const $ = cheerio.load(response.data)
     const matchStatusText = $(CSS_SELECTORS.MATCH_STATUS).text().trim().toLowerCase()
+    const finished = matchStatusText.includes('terminado')
+    const inPlay = matchStatusText.includes('decorrer')
 
-    let finished = false
-
-    // Terminado means finished
-    if (matchStatusText.includes('terminado')) {
-        finished = true
+    let homeScore = null
+    let awayScore = null
+    // A match that has not started still renders "0 - 0".
+    if (finished || inPlay) {
+        const scoreText = $(CSS_SELECTORS.MATCH_SCORE).first().text().trim()
+        const scoreMatch = scoreText.match(/(\d+)\s*-\s*(\d+)/)
+        if (scoreMatch) {
+            homeScore = parseInt(scoreMatch[1], 10)
+            awayScore = parseInt(scoreMatch[2], 10)
+        }
     }
 
-    const toReturn = {
-        finished
+    return {
+        finished,
+        homeScore,
+        awayScore,
+        dateStr: $(CSS_SELECTORS.MATCH_DATE).first().text().trim() || null,
     }
+}
 
-    return toReturn
+const parseGameDate = (dateStr) => {
+    // AFPB lists use "DD/MM HH:MM". Match pages use "DD/MM/YYYY HH:MM". Time is Europe/Lisbon, stored as a local Date.
+    const splitted = dateStr.split(' ').filter(Boolean)
+    const dateParts = splitted[0].split('/').map(x => parseInt(x, 10))
+    const [hour, minute] = splitted[1].split(':').map(x => parseInt(x, 10))
+    const year = dateParts[2] || new Date().getFullYear()
+    return new Date(year, dateParts[1] - 1, dateParts[0], hour, minute)
 }
 
 const mapClubName = (name) => {
